@@ -1,27 +1,32 @@
 {
   "name": "student-spending-habit",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "description": "Student Spending Analytics MVP - Monorepo",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "next": "15.5.4"
+    "dev": "pnpm --filter web dev",
+    "dev:api": "cd apps/api && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "build": "pnpm --filter web build",
+    "lint": "pnpm --recursive lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "type-check": "pnpm --filter web type-check",
+    "test": "pnpm --recursive test",
+    "test:web": "pnpm --filter web test",
+    "test:api": "cd apps/api && pytest",
+    "docker:up": "docker-compose up --build",
+    "docker:down": "docker-compose down"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.4",
-    "@eslint/eslintrc": "^3"
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
   }
 }
+
