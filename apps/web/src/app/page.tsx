@@ -185,8 +185,53 @@ export default function Home() {
               </Link>
             </div>
           </div>
+
+          {/* 기능 바로가기 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            {/* AI 자동 분류 */}
+            <Link href="/classify">
+              <div className="group bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-2xl p-8 text-white cursor-pointer transition-all duration-300 hover:scale-105 shadow-xl">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                    <span className="text-3xl">🤖</span>
+                  </div>
+                  <h3 className="text-2xl font-bold">AI 자동 분류</h3>
+                </div>
+                <p className="text-white/90">
+                  미분류 거래를 AI가 자동으로 카테고리에 분류합니다
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-white/80 group-hover:text-white transition-colors">
+                  <span className="text-sm font-semibold">분류하러 가기</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+
+            {/* 지출 통계 */}
+            <Link href="/stats">
+              <div className="group bg-gradient-to-br from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 rounded-2xl p-8 text-white cursor-pointer transition-all duration-300 hover:scale-105 shadow-xl">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                    <span className="text-3xl">📊</span>
+                  </div>
+                  <h3 className="text-2xl font-bold">지출 통계</h3>
+                </div>
+                <p className="text-white/90">
+                  카테고리별 지출 분석 및 트렌드를 확인합니다
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-white/80 group-hover:text-white transition-colors">
+                  <span className="text-sm font-semibold">통계 보러 가기</span>
+                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </Link>
+          </div>
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
   );
 }
