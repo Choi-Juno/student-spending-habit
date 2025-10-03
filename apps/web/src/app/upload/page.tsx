@@ -1,23 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import Papa from "papaparse";
-import { Transaction, TransactionSchema, validateTransactions } from "@student-spending/shared";
+import { useState } from "react";
+import { Transaction, validateTransactions } from "@student-spending/shared";
 import Link from "next/link";
 
-interface ParsedData {
-  valid: Transaction[];
-  invalid: Array<{
-    row: number;
-    data: unknown;
-    errors: string[];
-  }>;
-}
-
 export default function UploadPage() {
-  const [file, setFile] = useState<File | null>(null);
-  const [parsedData, setParsedData] = useState<ParsedData | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<{
     accepted: number;
@@ -25,63 +13,53 @@ export default function UploadPage() {
     reasons: Array<{ row: number; reason: string }>;
   } | null>(null);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
+  // 폼 상태
+  const [formData, setFormData] = useState({
+    date: new Date().toISOString().split("T")[0], // YYYY-MM-DD
+    time: new Date().toTimeString().slice(0, 5), // HH:MM
+    merchant: "",
+    memo: "",
+    amount_krw: "",
+    payment_type: "credit_card" as const,
+    city: "서울",
+    channel: "offline" as const,
+  });
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      handleFileSelect(droppedFile);
+  const handleAddTransaction = () => {
+    if (!formData.merchant || !formData.amount_krw) {
+      alert("가맹점명과 금액은 필수입니다.");
+      return;
     }
-  }, []);
 
-  const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile);
-    setUploadResult(null);
+    const newTransaction: Transaction = {
+      ...formData,
+      amount_krw: parseFloat(formData.amount_krw),
+    };
 
-    // CSV 또는 JSONL 파싱
-    if (selectedFile.name.endsWith(".csv")) {
-      Papa.parse(selectedFile, {
-        header: true,
-        dynamicTyping: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          const validated = validateTransactions(results.data);
-          setParsedData(validated);
-        },
-        error: (error) => {
-          console.error("CSV 파싱 에러:", error);
-          alert("CSV 파일 파싱에 실패했습니다.");
-        },
-      });
-    } else if (selectedFile.name.endsWith(".jsonl")) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        const lines = text.split("\n").filter((line) => line.trim());
-        const jsonData = lines.map((line) => JSON.parse(line));
-        const validated = validateTransactions(jsonData);
-        setParsedData(validated);
-      };
-      reader.readAsText(selectedFile);
-    } else {
-      alert("CSV 또는 JSONL 파일만 지원됩니다.");
-    }
+    setTransactions([...transactions, newTransaction]);
+
+    // 폼 초기화 (일부 필드만)
+    setFormData({
+      ...formData,
+      merchant: "",
+      memo: "",
+      amount_krw: "",
+    });
+  };
+
+  const handleRemoveTransaction = (index: number) => {
+    setTransactions(transactions.filter((_, i) => i !== index));
   };
 
   const handleSendToAPI = async () => {
-    if (!parsedData || parsedData.valid.length === 0) {
-      alert("업로드할 유효한 데이터가 없습니다.");
+    if (transactions.length === 0) {
+      alert("등록된 거래가 없습니다.");
+      return;
+    }
+
+    const validated = validateTransactions(transactions);
+    if (validated.invalid.length > 0) {
+      alert(`${validated.invalid.length}건의 유효하지 않은 거래가 있습니다.`);
       return;
     }
 
@@ -94,7 +72,7 @@ export default function UploadPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          transactions: parsedData.valid,
+          transactions: validated.valid,
         }),
       });
 
@@ -104,7 +82,10 @@ export default function UploadPage() {
 
       const result = await response.json();
       setUploadResult(result);
-      console.log("업로드 성공:", result);
+      
+      if (result.accepted > 0) {
+        setTransactions([]); // 성공 시 목록 초기화
+      }
     } catch (error) {
       console.error("업로드 에러:", error);
       alert("서버 업로드에 실패했습니다.");
@@ -132,214 +113,235 @@ export default function UploadPage() {
           </Link>
           <div className="flex items-center gap-4 mb-4">
             <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl">
-              <span className="text-4xl">📤</span>
+              <span className="text-4xl">✏️</span>
             </div>
             <div>
               <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                거래 데이터 업로드
+                거래 내역 등록
               </h1>
-              <p className="text-lg text-gray-600 mt-2">CSV 또는 JSONL 파일을 업로드하여 거래 데이터를 가져오세요</p>
+              <p className="text-lg text-gray-600 mt-2">직접 입력하여 거래 데이터를 간편하게 등록하세요</p>
             </div>
           </div>
         </div>
 
-        {/* 파일 업로드 영역 */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-              isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-blue-400"
-            }`}
-          >
-            <input
-              type="file"
-              accept=".csv,.jsonl"
-              onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
-              className="hidden"
-              id="file-input"
-            />
-            <label htmlFor="file-input" className="cursor-pointer block">
-              <div className="mb-6">
-                <div className={`w-20 h-20 mx-auto rounded-2xl flex items-center justify-center transition-all ${
-                  file ? "bg-gradient-to-br from-green-500 to-emerald-600" : "bg-gradient-to-br from-purple-500 to-blue-600"
-                }`}>
-                  {file ? (
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  ) : (
-                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  )}
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* 입력 폼 */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-gray-200/50">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+              <span>📝</span> 거래 정보 입력
+            </h2>
+
+            <div className="space-y-4">
+              {/* 날짜 & 시간 */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">날짜</label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">시간</label>
+                  <input
+                    type="time"
+                    value={formData.time}
+                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  />
                 </div>
               </div>
-              <p className="text-xl font-bold text-gray-800 mb-2">
-                {file ? file.name : "파일을 드래그하거나 클릭하여 선택"}
-              </p>
-              <p className="text-sm text-gray-500 mb-4">CSV 또는 JSONL 파일 (최대 10MB)</p>
-              {!file && (
-                <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:shadow-lg transition-shadow">
-                  파일 선택하기
-                </div>
-              )}
-            </label>
-          </div>
 
-          {/* 파일 정보 */}
-          {file && (
-            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                <strong>파일명:</strong> {file.name}
-              </p>
-              <p className="text-sm text-gray-600">
-                <strong>크기:</strong> {(file.size / 1024).toFixed(2)} KB
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* 파싱 결과 */}
-        {parsedData && (
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">파싱 결과</h2>
-
-            {/* 통계 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="p-4 bg-green-50 rounded-lg">
-                <p className="text-sm text-green-600">유효한 행</p>
-                <p className="text-3xl font-bold text-green-700">{parsedData.valid.length}</p>
+              {/* 가맹점 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  가맹점 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="예: 스타벅스 강남점"
+                  value={formData.merchant}
+                  onChange={(e) => setFormData({ ...formData, merchant: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
               </div>
-              <div className="p-4 bg-red-50 rounded-lg">
-                <p className="text-sm text-red-600">무효한 행</p>
-                <p className="text-3xl font-bold text-red-700">{parsedData.invalid.length}</p>
-              </div>
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-600">총 행 수</p>
-                <p className="text-3xl font-bold text-blue-700">
-                  {parsedData.valid.length + parsedData.invalid.length}
-                </p>
-              </div>
-            </div>
 
-            {/* 무효한 행 상세 */}
-            {parsedData.invalid.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-red-700 mb-3">
-                  무효한 행 ({parsedData.invalid.length}개)
-                </h3>
-                <div className="max-h-60 overflow-y-auto bg-red-50 p-4 rounded-lg">
-                  {parsedData.invalid.slice(0, 10).map((item, index) => (
-                    <div key={index} className="mb-3 pb-3 border-b border-red-200 last:border-0">
-                      <p className="text-sm font-medium text-red-800">행 {item.row}:</p>
-                      {item.errors.map((error, i) => (
-                        <p key={i} className="text-sm text-red-600 ml-4">
-                          • {error}
-                        </p>
-                      ))}
-                    </div>
-                  ))}
-                  {parsedData.invalid.length > 10 && (
-                    <p className="text-sm text-red-600 mt-2">
-                      ... 외 {parsedData.invalid.length - 10}개
-                    </p>
-                  )}
-                </div>
+              {/* 금액 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  금액 (원) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="예: 5000"
+                  value={formData.amount_krw}
+                  onChange={(e) => setFormData({ ...formData, amount_krw: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
               </div>
-            )}
 
-            {/* 미리보기 테이블 */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                데이터 미리보기 (처음 50개)
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        날짜
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        시간
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        가맹점
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        금액
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        결제수단
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        도시
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {parsedData.valid.slice(0, 50).map((txn, index) => (
-                      <tr key={index}>
-                        <td className="px-4 py-3 text-sm text-gray-900">{txn.date}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{txn.time}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{txn.merchant}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">
-                          ₩{txn.amount_krw.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{txn.payment_type}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{txn.city}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* 결제 수단 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">결제 수단</label>
+                <select
+                  value={formData.payment_type}
+                  onChange={(e) => setFormData({ ...formData, payment_type: e.target.value as any })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                >
+                  <option value="credit_card">신용카드</option>
+                  <option value="debit_card">체크카드</option>
+                  <option value="transport_card">교통카드</option>
+                  <option value="mobile_pay">모바일 페이</option>
+                  <option value="cash">현금</option>
+                </select>
               </div>
-              {parsedData.valid.length > 50 && (
-                <p className="text-sm text-gray-500 mt-4 text-center">
-                  ... 외 {parsedData.valid.length - 50}개 행
-                </p>
-              )}
-            </div>
 
-            {/* API 전송 버튼 */}
-            <div className="mt-6 flex justify-end">
+              {/* 도시 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">도시</label>
+                <input
+                  type="text"
+                  placeholder="예: 서울"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              {/* 채널 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">거래 채널</label>
+                <select
+                  value={formData.channel}
+                  onChange={(e) => setFormData({ ...formData, channel: e.target.value as any })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                >
+                  <option value="offline">오프라인 매장</option>
+                  <option value="online">온라인</option>
+                  <option value="app">앱</option>
+                  <option value="kiosk">키오스크</option>
+                </select>
+              </div>
+
+              {/* 메모 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">메모 (선택)</label>
+                <textarea
+                  placeholder="추가 메모..."
+                  value={formData.memo}
+                  onChange={(e) => setFormData({ ...formData, memo: e.target.value })}
+                  rows={2}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+                />
+              </div>
+
+              {/* 추가 버튼 */}
               <button
-                onClick={handleSendToAPI}
-                disabled={parsedData.valid.length === 0 || isUploading}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                onClick={handleAddTransaction}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-xl font-semibold hover:shadow-lg transition-all hover:scale-105"
               >
-                {isUploading ? "업로드 중..." : `API로 전송 (${parsedData.valid.length}건)`}
+                ➕ 거래 추가
               </button>
             </div>
           </div>
-        )}
+
+          {/* 등록된 거래 목록 */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-gray-200/50">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <span>📋</span> 등록된 거래
+              </h2>
+              <div className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full font-semibold">
+                {transactions.length}건
+              </div>
+            </div>
+
+            {transactions.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">📭</div>
+                <p className="text-gray-500">아직 등록된 거래가 없습니다</p>
+                <p className="text-sm text-gray-400 mt-2">왼쪽 폼에서 거래를 추가하세요</p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-3 mb-6 max-h-96 overflow-y-auto pr-2">
+                  {transactions.map((txn, index) => (
+                    <div key={index} className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-200/50 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-lg font-bold text-gray-800">{txn.merchant}</span>
+                            <span className="text-xs bg-purple-200 text-purple-700 px-2 py-1 rounded-full">
+                              {txn.payment_type}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">💰</span>
+                              <span className="text-lg font-bold text-purple-600">
+                                ₩{txn.amount_krw.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-4 text-xs">
+                              <span>📅 {txn.date} {txn.time}</span>
+                              <span>📍 {txn.city}</span>
+                              <span>🏪 {txn.channel}</span>
+                            </div>
+                            {txn.memo && (
+                              <div className="text-xs text-gray-500 italic">💬 {txn.memo}</div>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveTransaction(index)}
+                          className="ml-4 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleSendToAPI}
+                  disabled={isUploading}
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  {isUploading ? "업로드 중..." : `🚀 ${transactions.length}건 서버에 전송`}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
 
         {/* 업로드 결과 */}
         {uploadResult && (
-          <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">업로드 결과</h2>
+          <div className="mt-8 bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-gray-200/50">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">📊 업로드 결과</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div className="p-4 bg-green-50 rounded-lg">
-                <p className="text-sm text-green-600">성공</p>
-                <p className="text-3xl font-bold text-green-700">{uploadResult.accepted}건</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">성공</p>
+                <p className="text-5xl font-extrabold">{uploadResult.accepted}건</p>
               </div>
-              <div className="p-4 bg-red-50 rounded-lg">
-                <p className="text-sm text-red-600">실패</p>
-                <p className="text-3xl font-bold text-red-700">{uploadResult.rejected}건</p>
+              <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-6 text-white">
+                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">실패</p>
+                <p className="text-5xl font-extrabold">{uploadResult.rejected}건</p>
               </div>
             </div>
 
             {uploadResult.reasons.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-red-700 mb-3">실패 사유</h3>
-                <div className="max-h-60 overflow-y-auto bg-red-50 p-4 rounded-lg">
+              <div className="bg-red-50 rounded-2xl p-6 border border-red-200">
+                <h3 className="text-lg font-semibold text-red-800 mb-4">❌ 실패 사유</h3>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
                   {uploadResult.reasons.map((reason, index) => (
-                    <div key={index} className="mb-2">
-                      <p className="text-sm text-red-800">
-                        <strong>행 {reason.row}:</strong> {reason.reason}
-                      </p>
+                    <div key={index} className="text-sm text-red-700">
+                      <strong>행 {reason.row}:</strong> {reason.reason}
                     </div>
                   ))}
                 </div>
@@ -347,9 +349,12 @@ export default function UploadPage() {
             )}
 
             {uploadResult.accepted > 0 && (
-              <div className="mt-6 p-4 bg-green-50 rounded-lg">
-                <p className="text-green-800">
-                  ✅ {uploadResult.accepted}건의 거래가 성공적으로 저장되었습니다!
+              <div className="mt-6 bg-green-50 rounded-2xl p-6 border border-green-200">
+                <p className="text-green-800 flex items-center gap-2">
+                  <span className="text-2xl">✅</span>
+                  <span className="font-semibold">
+                    {uploadResult.accepted}건의 거래가 성공적으로 저장되었습니다!
+                  </span>
                 </p>
               </div>
             )}

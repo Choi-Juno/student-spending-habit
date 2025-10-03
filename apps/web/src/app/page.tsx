@@ -58,10 +58,12 @@ export default function Home() {
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
             AI 기반 지출 분석으로 당신의 소비 패턴을 이해하고 개선하세요
           </p>
-          
+
           {/* API 상태 표시 - 개선된 디자인 */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-gray-200/50">
-            <div className={`w-2 h-2 rounded-full ${apiStatus.includes("✅") ? "bg-green-500 animate-pulse" : "bg-yellow-500"}`}></div>
+            <div
+              className={`w-2 h-2 rounded-full ${apiStatus.includes("✅") ? "bg-green-500 animate-pulse" : "bg-yellow-500"}`}
+            ></div>
             <span className="text-sm text-gray-700">{apiStatus}</span>
           </div>
         </header>
@@ -105,7 +107,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div className="group bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl shadow-xl p-8 text-white hover:scale-105 transition-transform duration-300">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wider opacity-90">총 지출</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wider opacity-90">
+                  총 지출
+                </h3>
                 <span className="text-3xl">💵</span>
               </div>
               <p className="text-4xl font-extrabold mb-2">₩1,000,000</p>
@@ -113,10 +117,12 @@ export default function Home() {
                 <span className="text-sm bg-white/20 px-3 py-1 rounded-full">전월 대비 -5% ↓</span>
               </div>
             </div>
-            
+
             <div className="group bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl shadow-xl p-8 text-white hover:scale-105 transition-transform duration-300">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wider opacity-90">평균 일일 지출</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wider opacity-90">
+                  평균 일일 지출
+                </h3>
                 <span className="text-3xl">💳</span>
               </div>
               <p className="text-4xl font-extrabold mb-2">₩33,333</p>
@@ -124,10 +130,12 @@ export default function Home() {
                 <span className="text-sm bg-white/20 px-3 py-1 rounded-full">목표 범위 내 ✓</span>
               </div>
             </div>
-            
+
             <div className="group bg-gradient-to-br from-orange-500 to-pink-600 rounded-3xl shadow-xl p-8 text-white hover:scale-105 transition-transform duration-300">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wider opacity-90">가장 큰 지출</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wider opacity-90">
+                  가장 큰 지출
+                </h3>
                 <span className="text-3xl">🍔</span>
               </div>
               <p className="text-4xl font-extrabold mb-2">식비</p>
@@ -141,7 +149,7 @@ export default function Home() {
           <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-3xl shadow-2xl p-10 text-white overflow-hidden relative">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
-            
+
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
@@ -150,7 +158,7 @@ export default function Home() {
                 <h2 className="text-3xl font-bold">지출 데이터 업로드</h2>
               </div>
               <p className="text-white/90 mb-8 text-lg">
-                CSV 또는 JSONL 파일을 업로드하여 AI가 자동으로 분석하고 인사이트를 제공합니다
+                거래 내역을 직접 입력하여 AI가 자동으로 분석하고 인사이트를 제공합니다
               </p>
               <Link href="/upload">
                 <div className="group bg-white hover:bg-gray-50 rounded-2xl p-10 text-center cursor-pointer transition-all duration-300 hover:scale-105 shadow-xl">
@@ -170,8 +178,8 @@ export default function Home() {
                         />
                       </svg>
                     </div>
-                    <p className="text-xl font-bold text-gray-800 mb-2">업로드 페이지로 이동</p>
-                    <p className="text-sm text-gray-500">클릭하여 파일 업로드 시작 →</p>
+                    <p className="text-xl font-bold text-gray-800 mb-2">거래 입력 페이지로 이동</p>
+                    <p className="text-sm text-gray-500">클릭하여 거래 내역 등록 시작 →</p>
                   </div>
                 </div>
               </Link>
