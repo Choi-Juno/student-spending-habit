@@ -1,14 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { SpendingChart } from "@/components/SpendingChart";
 import { useSpendingStore } from "@/stores/spending-store";
+import { useAuthStore } from "@/stores/auth-store";
 import Link from "next/link";
 
 export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated, user, logout } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState<string>("확인 중...");
   const { selectedPeriod, setSelectedPeriod } = useSpendingStore();
+
+  // 인증 확인
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, router]);
 
   const mockData = [
     { name: "식비", value: 450000 },
@@ -39,6 +50,10 @@ export default function Home() {
     checkAPI();
   }, []);
 
+  if (!isAuthenticated) {
+    return null; // 로그인 페이지로 리다이렉트 중
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
       {/* 배경 장식 */}
@@ -49,6 +64,26 @@ export default function Home() {
 
       <div className="container mx-auto px-4 py-12 relative z-10">
         <header className="text-center mb-16 animate-fade-in">
+          <div className="flex justify-end mb-4">
+            <div className="inline-flex items-center gap-4 bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-gray-200/50">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
+                  {user?.username?.charAt(0).toUpperCase()}
+                </div>
+                <span className="text-sm font-medium text-gray-700">{user?.username}</span>
+              </div>
+              <button
+                onClick={() => {
+                  logout();
+                  router.push("/login");
+                }}
+                className="text-sm text-red-600 hover:text-red-800 font-medium"
+              >
+                로그아웃
+              </button>
+            </div>
+          </div>
+
           <div className="inline-block mb-4">
             <span className="text-6xl">💰</span>
           </div>
@@ -197,13 +232,21 @@ export default function Home() {
                   </div>
                   <h3 className="text-2xl font-bold">AI 자동 분류</h3>
                 </div>
-                <p className="text-white/90">
-                  미분류 거래를 AI가 자동으로 카테고리에 분류합니다
-                </p>
+                <p className="text-white/90">미분류 거래를 AI가 자동으로 카테고리에 분류합니다</p>
                 <div className="mt-4 flex items-center gap-2 text-white/80 group-hover:text-white transition-colors">
                   <span className="text-sm font-semibold">분류하러 가기</span>
-                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </div>
               </div>
@@ -218,20 +261,28 @@ export default function Home() {
                   </div>
                   <h3 className="text-2xl font-bold">지출 통계</h3>
                 </div>
-                <p className="text-white/90">
-                  카테고리별 지출 분석 및 트렌드를 확인합니다
-                </p>
+                <p className="text-white/90">카테고리별 지출 분석 및 트렌드를 확인합니다</p>
                 <div className="mt-4 flex items-center gap-2 text-white/80 group-hover:text-white transition-colors">
                   <span className="text-sm font-semibold">통계 보러 가기</span>
-                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <svg
+                    className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </div>
               </div>
             </Link>
           </div>
         </div>
-        </div>
-      </main>
+      </div>
+    </main>
   );
 }

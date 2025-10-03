@@ -14,11 +14,26 @@ export class APIError extends Error {
 export async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = `${API_URL}${endpoint}`;
 
+  // localStorage에서 토큰 가져오기
+  let token: string | null = null;
+  if (typeof window !== "undefined") {
+    const authStorage = localStorage.getItem("auth-storage");
+    if (authStorage) {
+      try {
+        const parsed = JSON.parse(authStorage);
+        token = parsed.state?.token || null;
+      } catch (e) {
+        console.error("Failed to parse auth storage:", e);
+      }
+    }
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options?.headers,
       },
     });

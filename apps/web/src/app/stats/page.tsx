@@ -2,7 +2,19 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 const COLORS = ["#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#EF4444"];
 
@@ -61,9 +73,22 @@ export default function StatsPage() {
       <div className="container mx-auto px-4 max-w-7xl relative z-10">
         {/* 헤더 */}
         <div className="mb-12">
-          <Link href="/" className="group inline-flex items-center gap-2 text-green-600 hover:text-green-800 mb-6 font-medium transition-all">
-            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <Link
+            href="/"
+            className="group inline-flex items-center gap-2 text-green-600 hover:text-green-800 mb-6 font-medium transition-all"
+          >
+            <svg
+              className="w-5 h-5 group-hover:-translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
             </svg>
             홈으로 돌아가기
           </Link>
@@ -133,15 +158,21 @@ export default function StatsPage() {
             {/* 요약 카드 */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white col-span-2">
-                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">총 지출</p>
+                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">
+                  총 지출
+                </p>
                 <p className="text-5xl font-extrabold">₩{stats.total_amount.toLocaleString()}</p>
               </div>
               <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
-                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">카테고리 수</p>
+                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">
+                  카테고리 수
+                </p>
                 <p className="text-5xl font-extrabold">{Object.keys(stats.by_category).length}개</p>
               </div>
               <div className="bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl p-6 text-white">
-                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">거래 일수</p>
+                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">
+                  거래 일수
+                </p>
                 <p className="text-5xl font-extrabold">{stats.daily_totals.length}일</p>
               </div>
             </div>
@@ -153,7 +184,16 @@ export default function StatsPage() {
                 <h3 className="text-2xl font-bold text-gray-800 mb-6">카테고리별 지출</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
-                    <Pie data={categoryData} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={100} fill="#8884d8" dataKey="value">
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
                       {categoryData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
@@ -168,14 +208,21 @@ export default function StatsPage() {
                 <h3 className="text-2xl font-bold text-gray-800 mb-6">상위 가맹점 TOP 3</h3>
                 <div className="space-y-4">
                   {stats.top_merchants.map((merchant, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200"
+                    >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${index === 0 ? "bg-yellow-500" : index === 1 ? "bg-gray-400" : "bg-orange-600"}`}>
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white ${index === 0 ? "bg-yellow-500" : index === 1 ? "bg-gray-400" : "bg-orange-600"}`}
+                        >
                           {index + 1}
                         </div>
                         <span className="font-semibold text-gray-800">{merchant.merchant}</span>
                       </div>
-                      <span className="text-xl font-bold text-purple-600">₩{merchant.amount.toLocaleString()}</span>
+                      <span className="text-xl font-bold text-purple-600">
+                        ₩{merchant.amount.toLocaleString()}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -202,4 +249,3 @@ export default function StatsPage() {
     </main>
   );
 }
-
