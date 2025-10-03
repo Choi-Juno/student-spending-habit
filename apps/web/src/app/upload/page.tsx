@@ -132,9 +132,7 @@ export default function UploadPage() {
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
-              isDragging
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300 hover:border-blue-400"
+              isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-blue-400"
             }`}
           >
             <input
@@ -336,4 +334,3 @@ export default function UploadPage() {
     </main>
   );
 }
-

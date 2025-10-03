@@ -145,4 +145,3 @@ async def get_transaction_stats(
         "total_amount": total_amount,
         "avg_amount": total_amount / total_count if total_count > 0 else 0,
     }
-

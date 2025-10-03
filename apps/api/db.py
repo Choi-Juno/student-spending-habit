@@ -35,4 +35,3 @@ def get_session():
     """데이터베이스 세션 생성"""
     with Session(engine) as session:
         yield session
-

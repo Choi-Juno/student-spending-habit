@@ -71,4 +71,3 @@ class TransactionRead(SQLModel):
     city: str
     channel: str
     created_at: datetime
-
