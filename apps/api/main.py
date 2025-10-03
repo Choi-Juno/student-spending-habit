@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import aggregate, classify, insight, upload
+from routers import aggregate, classify, insight, upload, transactions
 
 # 로깅 설정
 logging.basicConfig(
@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """애플리케이션 시작/종료 시 실행할 작업"""
     logger.info("🚀 API 서버 시작")
+    # 데이터베이스 초기화
+    from db import create_db_and_tables
+    create_db_and_tables()
     yield
     logger.info("🛑 API 서버 종료")
 
@@ -50,6 +53,7 @@ app.include_router(upload.router, prefix="/api", tags=["Upload"])
 app.include_router(classify.router, prefix="/api", tags=["Classify"])
 app.include_router(aggregate.router, prefix="/api", tags=["Aggregate"])
 app.include_router(insight.router, prefix="/api", tags=["Insight"])
+app.include_router(transactions.router, prefix="/api", tags=["Transactions"])
 
 
 @app.get("/health")

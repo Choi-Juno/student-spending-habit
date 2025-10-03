@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { SpendingChart } from "@/components/SpendingChart";
 import { useSpendingStore } from "@/stores/spending-store";
+import Link from "next/link";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
@@ -101,24 +102,26 @@ export default function Home() {
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">지출 데이터 업로드</h2>
             <p className="text-gray-600 mb-6">
-              CSV 또는 엑셀 파일을 업로드하여 지출을 자동으로 분석하세요
+              CSV 또는 JSONL 파일을 업로드하여 지출을 자동으로 분석하세요
             </p>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-500 transition-colors cursor-pointer">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                stroke="currentColor"
-                fill="none"
-                viewBox="0 0 48 48"
-              >
-                <path
-                  d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <p className="mt-4 text-gray-600">파일을 드래그하거나 클릭하여 업로드</p>
-            </div>
+            <Link href="/upload">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  stroke="currentColor"
+                  fill="none"
+                  viewBox="0 0 48 48"
+                >
+                  <path
+                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                <p className="mt-4 text-gray-600">클릭하여 업로드 페이지로 이동</p>
+              </div>
+            </Link>
           </div>
         </div>
       </div>

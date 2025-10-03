@@ -3,7 +3,11 @@
  * API와 Web 앱 간 공유되는 타입
  */
 
-export interface Transaction {
+// Transaction 스키마 (신규 업로드 플로우)
+export * from "./transaction";
+
+// 기존 분류 API 타입
+export interface ClassifyTransaction {
   id?: string;
   description: string;
   amount: number;
@@ -12,7 +16,7 @@ export interface Transaction {
   confidence?: number;
 }
 
-export interface UploadResponse {
+export interface ClassifyUploadResponse {
   message: string;
   processed_count: number;
 }

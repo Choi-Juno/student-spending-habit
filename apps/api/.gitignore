@@ -15,3 +15,8 @@ dist/
 build/
 *.egg-info/
 
+# 데이터베이스 파일
+data/
+*.db
+*.sqlite
+*.sqlite3
