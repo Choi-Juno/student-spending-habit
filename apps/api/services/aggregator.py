@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 def aggregate_transactions(
     session: Session,
+    user_id: int,
     start_date: str,
     end_date: str,
     range_type: Literal["day", "week", "month"] = "month"
@@ -22,6 +23,7 @@ def aggregate_transactions(
     
     Args:
         session: DB 세션
+        user_id: 사용자 ID
         start_date: 시작일 (YYYY-MM-DD)
         end_date: 종료일 (YYYY-MM-DD)
         range_type: 집계 범위 (day|week|month)
@@ -34,8 +36,9 @@ def aggregate_transactions(
             "daily_totals": [{date: 날짜, amount: 금액}]
         }
     """
-    # 날짜 범위 내 거래 조회
+    # 날짜 범위 내 해당 사용자의 거래 조회
     statement = select(Transaction).where(
+        Transaction.user_id == user_id,
         Transaction.date >= start_date,
         Transaction.date <= end_date
     )

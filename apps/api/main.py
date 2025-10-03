@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import aggregate, classify, insight, upload, transactions
+from routers import aggregate, classify, insight, upload, transactions, auth
 
 # 로깅 설정
 logging.basicConfig(
@@ -25,6 +25,8 @@ async def lifespan(app: FastAPI):
     """애플리케이션 시작/종료 시 실행할 작업"""
     logger.info("🚀 API 서버 시작")
     # 데이터베이스 초기화
+    from models.user import User  # Import User model to register it
+    from models.transaction import Transaction  # Import Transaction model
     from db import create_db_and_tables
     create_db_and_tables()
     yield
@@ -49,6 +51,7 @@ app.add_middleware(
 )
 
 # 라우터 등록
+app.include_router(auth.router, prefix="/api/auth", tags=["Auth"])
 app.include_router(upload.router, prefix="/api", tags=["Upload"])
 app.include_router(classify.router, prefix="/api", tags=["Classify"])
 app.include_router(aggregate.router, prefix="/api", tags=["Aggregate"])

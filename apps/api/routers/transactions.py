@@ -11,6 +11,8 @@ from sqlmodel import Session, select
 
 from db import get_session
 from models.transaction import Transaction, TransactionCreate, TransactionRead
+from models.user import User
+from routers.auth import get_current_user_dependency
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -41,12 +43,14 @@ class UploadResponse(BaseModel):
 async def upload_transactions(
     request: UploadRequest,
     session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user_dependency)],
 ):
     """
     거래 데이터 일괄 업로드
-
+    
     - 각 거래를 검증하여 유효한 것만 DB에 저장
     - 무효한 거래는 거부 사유와 함께 반환
+    - 현재 로그인한 사용자의 거래로 저장
     """
     accepted = 0
     rejected = 0
@@ -58,8 +62,11 @@ async def upload_transactions(
             # Pydantic 검증
             txn_create = TransactionCreate(**txn_data)
 
-            # DB에 저장
-            db_transaction = Transaction(**txn_create.model_dump())
+            # DB에 저장 (user_id 추가)
+            db_transaction = Transaction(
+                **txn_create.model_dump(),
+                user_id=current_user.id  # 현재 사용자 ID 추가
+            )
             session.add(db_transaction)
             accepted += 1
 
@@ -98,8 +105,8 @@ async def upload_transactions(
     try:
         session.commit()
         logger.info(
-            f"업로드 완료: {accepted}건 성공, {rejected}건 실패",
-            extra={"accepted": accepted, "rejected": rejected},
+            f"업로드 완료: {accepted}건 성공, {rejected}건 실패 (user_id: {current_user.id})",
+            extra={"accepted": accepted, "rejected": rejected, "user_id": current_user.id},
         )
     except Exception as e:
         session.rollback()
@@ -116,13 +123,21 @@ async def upload_transactions(
 @router.get("/transactions", response_model=list[TransactionRead])
 async def get_transactions(
     session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user_dependency)],
     limit: int = 100,
     offset: int = 0,
 ):
     """
     거래 목록 조회
+    
+    - 현재 로그인한 사용자의 거래만 조회
     """
-    statement = select(Transaction).offset(offset).limit(limit)
+    statement = (
+        select(Transaction)
+        .where(Transaction.user_id == current_user.id)
+        .offset(offset)
+        .limit(limit)
+    )
     transactions = session.exec(statement).all()
     return transactions
 
@@ -130,11 +145,14 @@ async def get_transactions(
 @router.get("/transactions/stats")
 async def get_transaction_stats(
     session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user_dependency)],
 ):
     """
     거래 통계
+    
+    - 현재 로그인한 사용자의 거래만 집계
     """
-    statement = select(Transaction)
+    statement = select(Transaction).where(Transaction.user_id == current_user.id)
     transactions = session.exec(statement).all()
 
     total_count = len(transactions)

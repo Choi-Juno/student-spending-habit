@@ -88,12 +88,13 @@ def classify_single_transaction(transaction: Transaction, use_llm: bool = False)
     return result
 
 
-def classify_all_unclassified(session: Session, use_llm: bool = False) -> dict:
+def classify_all_unclassified(session: Session, user_id: int, use_llm: bool = False) -> dict:
     """
     미분류 거래 전체 분류
     
     Args:
         session: DB 세션
+        user_id: 사용자 ID
         use_llm: LLM 사용 여부
         
     Returns:
@@ -103,8 +104,11 @@ def classify_all_unclassified(session: Session, use_llm: bool = False) -> dict:
             "needs_review_count": int
         }
     """
-    # 미분류 거래 조회 (category가 None인 것들)
-    statement = select(Transaction).where(Transaction.category.is_(None))
+    # 미분류 거래 조회 (category가 None이고 해당 사용자의 거래만)
+    statement = select(Transaction).where(
+        Transaction.category.is_(None),
+        Transaction.user_id == user_id
+    )
     unclassified = session.exec(statement).all()
     
     total_classified = 0

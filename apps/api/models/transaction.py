@@ -34,6 +34,7 @@ class Transaction(SQLModel, table=True):
     __tablename__ = "transactions"
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.id", index=True, description="사용자 ID")
     date: str = Field(..., description="거래 날짜 (YYYY-MM-DD)")
     time: str = Field(..., description="거래 시간 (HH:MM)")
     merchant: str = Field(..., description="가맹점명")
@@ -66,6 +67,7 @@ class TransactionRead(SQLModel):
     """Transaction 조회용 스키마"""
 
     id: int
+    user_id: int
     date: str
     time: str
     merchant: str
