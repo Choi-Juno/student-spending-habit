@@ -10,25 +10,34 @@ export default function LoginPage() {
   const login = useAuthStore((state) => state.login);
   const [isSignup, setIsSignup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     full_name: "",
   });
+  const [error, setError] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const endpoint = isSignup ? "/api/auth/signup" : "/api/auth/login";
-      
+
       const body = isSignup
-        ? { username: formData.username, email: formData.email, password: formData.password, full_name: formData.full_name || null }
+        ? {
+            username: formData.username,
+            email: formData.email,
+            password: formData.password,
+            full_name: formData.full_name || null,
+          }
         : { username: formData.username, password: formData.password };
+
+      console.log(`🔐 ${isSignup ? '회원가입' : '로그인'} 요청:`, { endpoint, body: { ...body, password: '***' } });
 
       const response = await fetch(`${apiUrl}${endpoint}`, {
         method: "POST",
@@ -36,22 +45,24 @@ export default function LoginPage() {
         body: JSON.stringify(body),
       });
 
+      const data = await response.json();
+      console.log('📦 서버 응답:', response.ok ? '성공' : '실패', data);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "인증 실패");
+        throw new Error(data.detail || "인증 실패");
       }
 
-      const data = await response.json();
-      
       if (isSignup) {
         alert("회원가입 성공! 로그인해주세요.");
         setIsSignup(false);
+        setFormData({ username: "", email: "", password: "", full_name: "" });
       } else {
         login(data.access_token, data.user);
         router.push("/");
       }
     } catch (error: any) {
-      alert(error.message || "오류가 발생했습니다.");
+      console.error('❌ 인증 에러:', error);
+      setError(error.message || "오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -69,6 +80,12 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <p className="text-red-800 text-sm">{error}</p>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">사용자명</label>
             <input
@@ -76,7 +93,7 @@ export default function LoginPage() {
               required
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
               placeholder="username"
             />
           </div>
@@ -90,7 +107,7 @@ export default function LoginPage() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
                   placeholder="your@email.com"
                 />
               </div>
@@ -100,7 +117,7 @@ export default function LoginPage() {
                   type="text"
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
                   placeholder="홍길동"
                 />
               </div>
@@ -114,7 +131,7 @@ export default function LoginPage() {
               required
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
               placeholder="••••••••"
             />
           </div>
@@ -122,7 +139,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-bold hover:shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             {isLoading ? "처리 중..." : isSignup ? "가입하기" : "로그인"}
           </button>
@@ -140,4 +157,3 @@ export default function LoginPage() {
     </main>
   );
 }
-

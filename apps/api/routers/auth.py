@@ -28,6 +28,7 @@ async def signup(user_data: UserCreate, session: Session = Depends(get_session))
     - full_name 선택
     """
     try:
+        logger.info(f"회원가입 시도: {user_data.username} ({user_data.email})")
         user = create_user(
             session,
             username=user_data.username,
@@ -35,10 +36,17 @@ async def signup(user_data: UserCreate, session: Session = Depends(get_session))
             password=user_data.password,
             full_name=user_data.full_name,
         )
-        logger.info(f"새 사용자 가입: {user.username}")
+        logger.info(f"✅ 새 사용자 가입 완료: {user.username} (ID: {user.id})")
         return user
     except ValueError as e:
+        logger.warning(f"❌ 회원가입 실패: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except Exception as e:
+        logger.error(f"❌ 회원가입 중 예상치 못한 오류: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="회원가입 중 오류가 발생했습니다."
+        )
 
 
 @router.post("/login", response_model=Token)
