@@ -12,6 +12,7 @@
     "test:watch": "vitest --watch"
   },
   "dependencies": {
+    "@student-spending/shared": "workspace:*",
     "@tanstack/react-query": "^5.90.2",
     "next": "15.5.4",
     "papaparse": "^5.5.3",
