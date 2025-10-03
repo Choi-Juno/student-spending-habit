@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SpendingChart } from "@/components/SpendingChart";
 import { useSpendingStore } from "@/stores/spending-store";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
+  const [apiStatus, setApiStatus] = useState<string>("확인 중...");
   const { selectedPeriod, setSelectedPeriod } = useSpendingStore();
 
   const mockData = [
@@ -16,12 +17,39 @@ export default function Home() {
     { name: "기타", value: 200000 },
   ];
 
+  // API Health Check - 페이지 로드 시 자동 호출
+  useEffect(() => {
+    const checkAPI = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        console.log("🔍 API 호출 시작:", apiUrl);
+
+        const response = await fetch(`${apiUrl}/health`);
+        const data = await response.json();
+
+        console.log("✅ API 응답:", data);
+        setApiStatus(data.status === "healthy" ? "연결됨 ✅" : "응답 이상");
+      } catch (error) {
+        console.error("❌ API 에러:", error);
+        setApiStatus("연결 실패 ❌");
+      }
+    };
+
+    checkAPI();
+  }, []);
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8">
         <header className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">💰 학생 지출 분석</h1>
           <p className="text-gray-600">당신의 소비 패턴을 분석하고 개선하세요</p>
+
+          {/* API 상태 표시 */}
+          <div className="mt-4 inline-block px-4 py-2 bg-white rounded-lg shadow-sm">
+            <span className="text-sm text-gray-600">API 상태: </span>
+            <span className="text-sm font-semibold">{apiStatus}</span>
+          </div>
         </header>
 
         <div className="max-w-6xl mx-auto">
