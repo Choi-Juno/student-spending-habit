@@ -1,45 +1,47 @@
 """
-거래 분류 라우터
+Classification 라우터
 """
 
 import logging
+from fastapi import APIRouter, Depends, Query
+from sqlmodel import Session
 
-from fastapi import APIRouter
+from db import engine
+from models.transaction import ClassificationResult
+from services.classifier import classify_all_unclassified
 
-from models.schemas import ClassifyRequest, ClassifyResponse, TransactionClassified
-from services.classifier import classifier
-
-router = APIRouter()
 logger = logging.getLogger(__name__)
+router = APIRouter()
 
 
-@router.post("/classify", response_model=ClassifyResponse)
-async def classify_transactions(request: ClassifyRequest):
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+
+@router.post("/classify", response_model=ClassificationResult)
+async def classify_transactions(
+    use_llm: bool = Query(default=False, description="LLM 백업 사용 여부"),
+    session: Session = Depends(get_session)
+):
     """
-    거래 내역 분류
-
-    - 각 거래를 카테고리로 자동 분류
-    - 신뢰도 점수 반환
+    미분류 거래 자동 분류
+    
+    - Rules engine을 사용하여 가맹점/키워드 기반 분류
+    - use_llm=true 설정 시 LLM 백업 사용 (현재는 stub)
+    - 분류 후 카테고리별 건수와 검토 필요 건수 반환
     """
-    classified_transactions = []
-
-    for txn in request.transactions:
-        # 분류 수행 (PII 데이터는 로깅하지 않음)
-        category, confidence = classifier.classify(txn.description)
-
-        classified_transactions.append(
-            TransactionClassified(
-                description=txn.description,
-                amount=txn.amount,
-                date=txn.date,
-                category=category,
-                confidence=confidence,
-            )
-        )
-
+    logger.info(f"분류 시작 (use_llm={use_llm})")
+    
+    result = classify_all_unclassified(session, use_llm=use_llm)
+    
     logger.info(
-        f"거래 분류 완료",
-        extra={"transaction_count": len(classified_transactions)},
+        f"분류 완료: {result['total_classified']}건 처리, "
+        f"{result['needs_review_count']}건 검토 필요"
     )
-
-    return ClassifyResponse(classified=classified_transactions)
+    
+    return ClassificationResult(
+        total_classified=result["total_classified"],
+        by_category=result["by_category"],
+        needs_review_count=result["needs_review_count"],
+    )

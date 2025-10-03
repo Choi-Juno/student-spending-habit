@@ -82,7 +82,7 @@ export default function UploadPage() {
 
       const result = await response.json();
       setUploadResult(result);
-      
+
       if (result.accepted > 0) {
         setTransactions([]); // 성공 시 목록 초기화
       }
@@ -105,9 +105,22 @@ export default function UploadPage() {
       <div className="container mx-auto px-4 max-w-6xl relative z-10">
         {/* 헤더 */}
         <div className="mb-12">
-          <Link href="/" className="group inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-6 font-medium transition-all">
-            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          <Link
+            href="/"
+            className="group inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-6 font-medium transition-all"
+          >
+            <svg
+              className="w-5 h-5 group-hover:-translate-x-1 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
             </svg>
             홈으로 돌아가기
           </Link>
@@ -119,7 +132,9 @@ export default function UploadPage() {
               <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 거래 내역 등록
               </h1>
-              <p className="text-lg text-gray-600 mt-2">직접 입력하여 거래 데이터를 간편하게 등록하세요</p>
+              <p className="text-lg text-gray-600 mt-2">
+                직접 입력하여 거래 데이터를 간편하게 등록하세요
+              </p>
             </div>
           </div>
         </div>
@@ -187,7 +202,9 @@ export default function UploadPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">결제 수단</label>
                 <select
                   value={formData.payment_type}
-                  onChange={(e) => setFormData({ ...formData, payment_type: e.target.value as any })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, payment_type: e.target.value as any })
+                  }
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 >
                   <option value="credit_card">신용카드</option>
@@ -268,7 +285,10 @@ export default function UploadPage() {
               <>
                 <div className="space-y-3 mb-6 max-h-96 overflow-y-auto pr-2">
                   {transactions.map((txn, index) => (
-                    <div key={index} className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-200/50 hover:shadow-md transition-shadow">
+                    <div
+                      key={index}
+                      className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-200/50 hover:shadow-md transition-shadow"
+                    >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
@@ -285,7 +305,9 @@ export default function UploadPage() {
                               </span>
                             </div>
                             <div className="flex items-center gap-4 text-xs">
-                              <span>📅 {txn.date} {txn.time}</span>
+                              <span>
+                                📅 {txn.date} {txn.time}
+                              </span>
                               <span>📍 {txn.city}</span>
                               <span>🏪 {txn.channel}</span>
                             </div>
@@ -298,8 +320,18 @@ export default function UploadPage() {
                           onClick={() => handleRemoveTransaction(index)}
                           className="ml-4 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition-colors"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
                           </svg>
                         </button>
                       </div>
@@ -326,11 +358,15 @@ export default function UploadPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
-                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">성공</p>
+                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">
+                  성공
+                </p>
                 <p className="text-5xl font-extrabold">{uploadResult.accepted}건</p>
               </div>
               <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl p-6 text-white">
-                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">실패</p>
+                <p className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">
+                  실패
+                </p>
                 <p className="text-5xl font-extrabold">{uploadResult.rejected}건</p>
               </div>
             </div>

@@ -1,43 +1,50 @@
 """
-지출 집계 라우터
+Aggregation 라우터
 """
 
 import logging
+from typing import Literal
+from fastapi import APIRouter, Depends, Query
+from sqlmodel import Session
 
-from fastapi import APIRouter
+from db import engine
+from models.transaction import AggregationResult
+from services.aggregator import aggregate_transactions
 
-from models.schemas import AggregateResponse, ClassifyRequest
-from services.aggregator import aggregator
-from services.classifier import classifier
-
-router = APIRouter()
 logger = logging.getLogger(__name__)
+router = APIRouter()
 
 
-@router.post("/aggregate", response_model=AggregateResponse)
-async def aggregate_spending(request: ClassifyRequest):
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+
+@router.get("/aggregate", response_model=AggregationResult)
+async def get_aggregation(
+    start: str = Query(..., description="시작일 (YYYY-MM-DD)", regex=r"^\d{4}-\d{2}-\d{2}$"),
+    end: str = Query(..., description="종료일 (YYYY-MM-DD)", regex=r"^\d{4}-\d{2}-\d{2}$"),
+    range: Literal["day", "week", "month"] = Query(default="month", description="집계 범위"),
+    session: Session = Depends(get_session)
+):
     """
-    지출 집계
-
-    - 카테고리별 지출 합계
-    - 전체 지출 합계
+    거래 집계 조회
+    
+    - 날짜 범위 내 거래 통계 제공
+    - 카테고리별 금액, 상위 가맹점, 일별 총액 반환
     """
-    # 먼저 거래를 분류
-    classified = []
-    for txn in request.transactions:
-        category, _ = classifier.classify(txn.description)
-        classified.append(
-            {"category": category, "amount": txn.amount, "date": txn.date}
-        )
-
-    # 집계 수행
-    total, by_category = aggregator.aggregate_by_category(classified)
-
-    logger.info(
-        f"지출 집계 완료",
-        extra={"total_spending": total, "category_count": len(by_category)},
+    logger.info(f"집계 조회: {start} ~ {end} (range={range})")
+    
+    result = aggregate_transactions(
+        session,
+        start_date=start,
+        end_date=end,
+        range_type=range
     )
-
-    return AggregateResponse(
-        period="custom", total_spending=total, by_category=by_category
+    
+    return AggregationResult(
+        total_amount=result["total_amount"],
+        by_category=result["by_category"],
+        top_merchants=result["top_merchants"],
+        daily_totals=result["daily_totals"],
     )
