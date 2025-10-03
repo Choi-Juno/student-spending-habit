@@ -114,15 +114,33 @@ export default function UploadPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
-      <div className="container mx-auto px-4 max-w-6xl">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-12 relative overflow-hidden">
+      {/* 배경 장식 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-20 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute bottom-20 left-20 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-1000"></div>
+      </div>
+
+      <div className="container mx-auto px-4 max-w-6xl relative z-10">
         {/* 헤더 */}
-        <div className="mb-8">
-          <Link href="/" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
-            ← 홈으로 돌아가기
+        <div className="mb-12">
+          <Link href="/" className="group inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-6 font-medium transition-all">
+            <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            홈으로 돌아가기
           </Link>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">📤 거래 데이터 업로드</h1>
-          <p className="text-gray-600">CSV 또는 JSONL 파일을 업로드하여 거래 데이터를 가져오세요</p>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl">
+              <span className="text-4xl">📤</span>
+            </div>
+            <div>
+              <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                거래 데이터 업로드
+              </h1>
+              <p className="text-lg text-gray-600 mt-2">CSV 또는 JSONL 파일을 업로드하여 거래 데이터를 가져오세요</p>
+            </div>
+          </div>
         </div>
 
         {/* 파일 업로드 영역 */}
@@ -142,24 +160,31 @@ export default function UploadPage() {
               className="hidden"
               id="file-input"
             />
-            <label htmlFor="file-input" className="cursor-pointer">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400 mb-4"
-                stroke="currentColor"
-                fill="none"
-                viewBox="0 0 48 48"
-              >
-                <path
-                  d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <p className="text-lg text-gray-700 mb-2">
+            <label htmlFor="file-input" className="cursor-pointer block">
+              <div className="mb-6">
+                <div className={`w-20 h-20 mx-auto rounded-2xl flex items-center justify-center transition-all ${
+                  file ? "bg-gradient-to-br from-green-500 to-emerald-600" : "bg-gradient-to-br from-purple-500 to-blue-600"
+                }`}>
+                  {file ? (
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <p className="text-xl font-bold text-gray-800 mb-2">
                 {file ? file.name : "파일을 드래그하거나 클릭하여 선택"}
               </p>
-              <p className="text-sm text-gray-500">CSV 또는 JSONL 파일 (최대 10MB)</p>
+              <p className="text-sm text-gray-500 mb-4">CSV 또는 JSONL 파일 (최대 10MB)</p>
+              {!file && (
+                <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:shadow-lg transition-shadow">
+                  파일 선택하기
+                </div>
+              )}
             </label>
           </div>
 
