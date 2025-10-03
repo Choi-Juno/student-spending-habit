@@ -19,6 +19,8 @@ router = APIRouter()
 
 @router.get("/aggregate", response_model=AggregationResult)
 async def get_aggregation(
+    session: Annotated[Session, Depends(get_session)],
+    current_user: Annotated[User, Depends(get_current_user_dependency)],
     start: str = Query(
         ..., description="시작일 (YYYY-MM-DD)", regex=r"^\d{4}-\d{2}-\d{2}$"
     ),
@@ -28,8 +30,6 @@ async def get_aggregation(
     range: Literal["day", "week", "month"] = Query(
         default="month", description="집계 범위"
     ),
-    session: Annotated[Session, Depends(get_session)],
-    current_user: Annotated[User, Depends(get_current_user_dependency)],
 ):
     """
     거래 집계 조회

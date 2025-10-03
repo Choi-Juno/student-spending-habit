@@ -19,9 +19,9 @@ router = APIRouter()
 
 @router.post("/classify", response_model=ClassificationResult)
 async def classify_transactions(
-    use_llm: bool = Query(default=False, description="LLM 백업 사용 여부"),
     session: Annotated[Session, Depends(get_session)],
     current_user: Annotated[User, Depends(get_current_user_dependency)],
+    use_llm: bool = Query(default=False, description="LLM 백업 사용 여부"),
 ):
     """
     미분류 거래 자동 분류
