@@ -37,7 +37,10 @@ export default function LoginPage() {
           }
         : { username: formData.username, password: formData.password };
 
-      console.log(`🔐 ${isSignup ? '회원가입' : '로그인'} 요청:`, { endpoint, body: { ...body, password: '***' } });
+      console.log(`🔐 ${isSignup ? "회원가입" : "로그인"} 요청:`, {
+        endpoint,
+        body: { ...body, password: "***" },
+      });
 
       const response = await fetch(`${apiUrl}${endpoint}`, {
         method: "POST",
@@ -46,7 +49,7 @@ export default function LoginPage() {
       });
 
       const data = await response.json();
-      console.log('📦 서버 응답:', response.ok ? '성공' : '실패', data);
+      console.log("📦 서버 응답:", response.ok ? "성공" : "실패", data);
 
       if (!response.ok) {
         throw new Error(data.detail || "인증 실패");
@@ -61,7 +64,7 @@ export default function LoginPage() {
         router.push("/");
       }
     } catch (error: any) {
-      console.error('❌ 인증 에러:', error);
+      console.error("❌ 인증 에러:", error);
       setError(error.message || "오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
@@ -129,11 +132,14 @@ export default function LoginPage() {
             <input
               type="password"
               required
+              minLength={4}
+              maxLength={50}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
               placeholder="••••••••"
             />
+            <p className="text-xs text-gray-500 mt-1">4-50자 사이로 입력해주세요</p>
           </div>
 
           <button
