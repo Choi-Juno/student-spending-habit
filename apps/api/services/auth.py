@@ -22,20 +22,38 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7일
 
 
+def _truncate_password(password: str) -> str:
+    """
+    bcrypt 72바이트 제한에 맞게 비밀번호 자르기
+    UTF-8 문자가 잘리지 않도록 안전하게 처리
+    """
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) <= 72:
+        return password
+    
+    # 72바이트로 자르되, UTF-8 문자가 깨지지 않도록 처리
+    truncated = password_bytes[:72]
+    # 마지막 바이트가 멀티바이트 문자의 중간일 수 있으므로 안전하게 디코딩
+    while len(truncated) > 0:
+        try:
+            return truncated.decode("utf-8")
+        except UnicodeDecodeError:
+            # 마지막 바이트 제거 후 재시도
+            truncated = truncated[:-1]
+    
+    return password[:20]  # fallback
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """비밀번호 검증"""
-    # bcrypt는 최대 72바이트까지만 지원
-    password_bytes = plain_password.encode('utf-8')[:72]
-    truncated_password = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.verify(truncated_password, hashed_password)
+    truncated = _truncate_password(plain_password)
+    return pwd_context.verify(truncated, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
     """비밀번호 해싱"""
-    # bcrypt는 최대 72바이트까지만 지원
-    password_bytes = password.encode('utf-8')[:72]
-    truncated_password = password_bytes.decode('utf-8', errors='ignore')
-    return pwd_context.hash(truncated_password)
+    truncated = _truncate_password(password)
+    return pwd_context.hash(truncated)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -45,7 +63,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -64,26 +82,32 @@ def authenticate_user(session: Session, username: str, password: str) -> Optiona
     """사용자 인증"""
     statement = select(User).where(User.username == username)
     user = session.exec(statement).first()
-    
+
     if not user:
         return None
     if not verify_password(password, user.hashed_password):
         return None
-    
+
     return user
 
 
-def create_user(session: Session, username: str, email: str, password: str, full_name: Optional[str] = None) -> User:
+def create_user(
+    session: Session,
+    username: str,
+    email: str,
+    password: str,
+    full_name: Optional[str] = None,
+) -> User:
     """사용자 생성"""
     # 중복 체크
     existing_user = session.exec(select(User).where(User.username == username)).first()
     if existing_user:
         raise ValueError("이미 존재하는 사용자명입니다.")
-    
+
     existing_email = session.exec(select(User).where(User.email == email)).first()
     if existing_email:
         raise ValueError("이미 존재하는 이메일입니다.")
-    
+
     # 사용자 생성
     user = User(
         username=username,
@@ -91,11 +115,11 @@ def create_user(session: Session, username: str, email: str, password: str, full
         hashed_password=get_password_hash(password),
         full_name=full_name,
     )
-    
+
     session.add(user)
     session.commit()
     session.refresh(user)
-    
+
     logger.info(f"새 사용자 생성: {username}")
     return user
 
@@ -105,11 +129,10 @@ def get_current_user_from_token(token: str, session: Session) -> Optional[User]:
     payload = decode_access_token(token)
     if not payload:
         return None
-    
+
     user_id: int = payload.get("sub")
     if not user_id:
         return None
-    
+
     user = session.get(User, user_id)
     return user
-

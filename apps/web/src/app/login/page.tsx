@@ -133,13 +133,12 @@ export default function LoginPage() {
               type="password"
               required
               minLength={4}
-              maxLength={50}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
               placeholder="••••••••"
             />
-            <p className="text-xs text-gray-500 mt-1">4-50자 사이로 입력해주세요</p>
+            <p className="text-xs text-gray-500 mt-1">최소 4자 이상 입력해주세요</p>
           </div>
 
           <button
