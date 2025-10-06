@@ -13,8 +13,8 @@ from models.user import User
 
 logger = logging.getLogger(__name__)
 
-# 비밀번호 해싱
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 비밀번호 해싱 (Argon2: 안전하고 현대적인 알고리즘, 72바이트 제한 없음)
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 # JWT 설정
 SECRET_KEY = "your-secret-key-change-in-production"  # 프로덕션에서는 환경변수로!
@@ -22,38 +22,14 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7일
 
 
-def _truncate_password(password: str) -> str:
-    """
-    bcrypt 72바이트 제한에 맞게 비밀번호 자르기
-    UTF-8 문자가 잘리지 않도록 안전하게 처리
-    """
-    password_bytes = password.encode("utf-8")
-    if len(password_bytes) <= 72:
-        return password
-    
-    # 72바이트로 자르되, UTF-8 문자가 깨지지 않도록 처리
-    truncated = password_bytes[:72]
-    # 마지막 바이트가 멀티바이트 문자의 중간일 수 있으므로 안전하게 디코딩
-    while len(truncated) > 0:
-        try:
-            return truncated.decode("utf-8")
-        except UnicodeDecodeError:
-            # 마지막 바이트 제거 후 재시도
-            truncated = truncated[:-1]
-    
-    return password[:20]  # fallback
-
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """비밀번호 검증"""
-    truncated = _truncate_password(plain_password)
-    return pwd_context.verify(truncated, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
     """비밀번호 해싱"""
-    truncated = _truncate_password(password)
-    return pwd_context.hash(truncated)
+    return pwd_context.hash(password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

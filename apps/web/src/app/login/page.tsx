@@ -138,7 +138,7 @@ export default function LoginPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white placeholder-gray-400"
               placeholder="••••••••"
             />
-            <p className="text-xs text-gray-500 mt-1">최소 4자 이상 입력해주세요</p>
+            <p className="text-xs text-gray-500 mt-1">4자 이상 입력해주세요</p>
           </div>
 
           <button
