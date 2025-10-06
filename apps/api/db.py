@@ -10,16 +10,18 @@ from sqlmodel import Session, SQLModel, create_engine
 
 logger = logging.getLogger(__name__)
 
-# SQLite 데이터베이스 경로
+# 기본값: 로컬 개발용 SQLite
 DB_PATH = Path(__file__).parent / "data"
 DB_PATH.mkdir(exist_ok=True)
-DATABASE_URL = f"sqlite:///{DB_PATH / 'transactions.db'}"
+DEFAULT_DATABASE_URL = f"sqlite:///{DB_PATH / 'transactions.db'}"
 
-# 프로덕션에서는 환경 변수로 오버라이드 가능
-DATABASE_URL = os.getenv("DATABASE_URL", DATABASE_URL)
+# 환경 변수로 DATABASE_URL 설정 (프로덕션: PostgreSQL)
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
 
 # SQLite의 경우 check_same_thread=False 필요
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+logger.info(f"🗄️  데이터베이스 연결 중: {DATABASE_URL.split('@')[-1] if '@' in DATABASE_URL else 'SQLite (로컬)'}")
 
 engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args)
 
