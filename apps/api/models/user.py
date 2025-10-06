@@ -18,8 +18,8 @@ class User(SQLModel, table=True):
     hashed_password: str = Field(description="해시된 비밀번호")
     full_name: Optional[str] = Field(default=None, description="전체 이름")
     is_active: bool = Field(default=True, description="활성화 여부")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.utcnow())
+    updated_at: datetime = Field(default_factory=lambda: datetime.utcnow())
 
 
 class UserCreate(SQLModel):

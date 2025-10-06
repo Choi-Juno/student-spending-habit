@@ -46,8 +46,8 @@ class Transaction(SQLModel, table=True):
     category: Optional[str] = Field(default=None, description="분류 카테고리")
     confidence: Optional[float] = Field(default=None, description="분류 신뢰도 (0-1)")
     needs_review: bool = Field(default=False, description="수동 검토 필요 여부")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.utcnow())
+    updated_at: datetime = Field(default_factory=lambda: datetime.utcnow())
 
 
 class TransactionCreate(SQLModel):
