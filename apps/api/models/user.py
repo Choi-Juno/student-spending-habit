@@ -5,6 +5,7 @@ User 모델 정의 (SQLModel)
 from datetime import datetime
 from typing import Optional
 from sqlmodel import Field, SQLModel
+from sqlalchemy import Column, DateTime, func
 
 
 class User(SQLModel, table=True):
@@ -18,8 +19,14 @@ class User(SQLModel, table=True):
     hashed_password: str = Field(description="해시된 비밀번호")
     full_name: Optional[str] = Field(default=None, description="전체 이름")
     is_active: bool = Field(default=True, description="활성화 여부")
-    created_at: datetime = Field(default_factory=lambda: datetime.utcnow())
-    updated_at: datetime = Field(default_factory=lambda: datetime.utcnow())
+    created_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime, nullable=False, server_default=func.now())
+    )
+    updated_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    )
 
 
 class UserCreate(SQLModel):
@@ -39,7 +46,7 @@ class UserRead(SQLModel):
     email: str
     full_name: Optional[str]
     is_active: bool
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
 
 class UserLogin(SQLModel):
@@ -55,4 +62,3 @@ class Token(SQLModel):
     access_token: str
     token_type: str
     user: UserRead
-

@@ -7,6 +7,7 @@ from enum import Enum
 from typing import Optional
 
 from sqlmodel import Field, SQLModel
+from sqlalchemy import Column, DateTime, func
 
 
 class PaymentType(str, Enum):
@@ -46,8 +47,14 @@ class Transaction(SQLModel, table=True):
     category: Optional[str] = Field(default=None, description="분류 카테고리")
     confidence: Optional[float] = Field(default=None, description="분류 신뢰도 (0-1)")
     needs_review: bool = Field(default=False, description="수동 검토 필요 여부")
-    created_at: datetime = Field(default_factory=lambda: datetime.utcnow())
-    updated_at: datetime = Field(default_factory=lambda: datetime.utcnow())
+    created_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime, nullable=False, server_default=func.now())
+    )
+    updated_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
+    )
 
 
 class TransactionCreate(SQLModel):
@@ -79,8 +86,8 @@ class TransactionRead(SQLModel):
     category: Optional[str] = None
     confidence: Optional[float] = None
     needs_review: bool = False
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 class ClassificationResult(SQLModel):
